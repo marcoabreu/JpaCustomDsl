@@ -13,4 +13,9 @@ public class JcdFactory {
 	public EntityProvider select(Class clazz) {
 		
 	}
+	
+	public JoinProvider selectJoin(Class clazz, String relationName) {
+		
+		return new JoinProvider(clazz, relationName);
+	}
 }
