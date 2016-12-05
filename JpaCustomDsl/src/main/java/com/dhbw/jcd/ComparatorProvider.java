@@ -71,7 +71,7 @@ public class ComparatorProvider<T> {
 	private String convertValueToString(Object value) {
 		if(value instanceof String) {
 			//Add quotes
-			return String.format("\"%s\"", value);
+			return String.format("'%s'", value);
 		}
 		else
 		{
