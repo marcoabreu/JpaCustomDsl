@@ -7,11 +7,11 @@ import com.dhbw.jcd.exceptions.TypeMismatchException;
 public class ComparatorProvider {
 	private final EntityProvider entityProvider;
 	private final String attributeName;
-	private final Class attributeType;
+	private final Type attributeType;
 	
 	private String generatedQuery;
 	
-	public ComparatorProvider(EntityProvider entityProvider, String attributeName, Class attributeType) {
+	public ComparatorProvider(EntityProvider entityProvider, String attributeName, Type attributeType) {
 		this.entityProvider = entityProvider;
 		this.attributeName = attributeName;
 		this.attributeType = attributeType;
@@ -64,10 +64,10 @@ public class ComparatorProvider {
 		}
 	} 
 	
-	private void ensureTypeSafety(Class attributeType, Object passedParameter) throws TypeMismatchException {
+	private void ensureTypeSafety(Type attributeType, Object passedParameter) throws TypeMismatchException {
 		
-		if(!passedParameter.getClass().isAssignableFrom(attributeType)) {
-			throw new TypeMismatchException(this.attributeName, attributeType, passedParameter.getClass());
+		if(passedParameter.getClass() == attributeType) {
+			throw new TypeMismatchException(entityProvider.getEntityClass(), this.attributeName, attributeType, passedParameter.getClass());
 		}
 	}
 }

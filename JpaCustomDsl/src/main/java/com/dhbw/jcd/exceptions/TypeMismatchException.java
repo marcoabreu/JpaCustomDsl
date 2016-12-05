@@ -4,12 +4,12 @@ import java.lang.reflect.Type;
 
 public class TypeMismatchException extends JcdException {
 
-	public TypeMismatchException(Class clazz, Class expectedType, Class realType) {
+	public TypeMismatchException(Class entityClass, Class expectedType, Class realType) {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public TypeMismatchException(String attributeName, Class expectedType, Class realType) {
-		//TODO
+	public TypeMismatchException(Class entityClass, String attributeName, Type expectedType, Class realType) {
+		super(String.format("Entity's attribute %s.%s type %s does not match passed type %s", entityClass.toGenericString(), attributeName, expectedType.toString(), realType.toGenericString()));
 	}
 
 }
