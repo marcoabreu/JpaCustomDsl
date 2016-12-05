@@ -2,6 +2,8 @@ package com.dhbw.jcd;
 
 import java.lang.reflect.Type;
 
+import org.apache.commons.lang3.ClassUtils;
+
 import com.dhbw.jcd.exceptions.TypeMismatchException;
 
 public class ComparatorProvider {
@@ -65,8 +67,7 @@ public class ComparatorProvider {
 	} 
 	
 	private void ensureTypeSafety(Type attributeType, Object passedParameter) throws TypeMismatchException {
-		
-		if(passedParameter.getClass() == attributeType) {
+		if(!passedParameter.getClass().equals(attributeType)) {
 			throw new TypeMismatchException(entityProvider.getEntityClass(), this.attributeName, attributeType, passedParameter.getClass());
 		}
 	}

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.jboss.logging.Message;
 
 import com.dhbw.jcd.exceptions.AttributeNotFoundException;
@@ -99,7 +100,7 @@ public class EntityProvider {
 	public ComparatorProvider where(String attributeName) throws AttributeNotFoundException {
 		//TODO Check if attribute is annotated 
 		Field attributeField = extractAttributeField(this.entityClass, attributeName);
-		Type attributeType = attributeField.getGenericType();
+		Type attributeType = ClassUtils.primitiveToWrapper((Class<?>) attributeField.getGenericType());
 		
 		ComparatorProvider comparator = new ComparatorProvider(this, attributeName, attributeType);
 		

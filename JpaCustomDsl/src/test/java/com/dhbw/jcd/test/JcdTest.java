@@ -72,4 +72,19 @@ public class JcdTest {
 				.generateQuery();
 		System.out.println(query);
 	}
+	
+	@Test
+	public void nestedJoinWhereTest() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("intColumn").eq(5).where("stringColumn").eq("elephant")
+				.joins(
+					factory.startJoin(ChildEntity.class, "childEntityRelation")
+						.where("shortColumn").eq((short)42).where("longColumn").gt((long)5)
+						.joins(
+								factory.startJoin(ChildChildEntity.class, "childChildEntityRelation")
+						)
+				)
+				.generateQuery();
+		System.out.println(query);
+	}
 }

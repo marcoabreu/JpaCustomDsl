@@ -17,6 +17,9 @@ public class ParentEntity {
 	@Column(name = "intColumn")
 	private int intColumn;
 	
+	@Column(name = "stringColumn")
+	private String stringColumn;
+	
 	@OneToMany()
 	private List<ChildEntity> childEntityRelation = new ArrayList<>();
 
