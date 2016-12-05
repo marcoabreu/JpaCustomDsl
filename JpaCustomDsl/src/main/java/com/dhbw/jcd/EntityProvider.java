@@ -86,6 +86,16 @@ public class EntityProvider {
 		return this;
 	}
 	
+	protected List<ComparatorProvider> getComparators() {
+		List<ComparatorProvider> compares = new ArrayList<>();
+		compares.addAll(comparators);
+		
+		//Add nested joins
+		joinEntities.values().stream().map(j -> j.getComparators()).forEach(j -> compares.addAll(j));
+		
+		return compares;
+	}
+	
 	public ComparatorProvider where(String attributeName) throws AttributeNotFoundException {
 		//TODO Check if attribute is annotated 
 		Field attributeField = extractAttributeField(this.entityClass, attributeName);
@@ -99,9 +109,8 @@ public class EntityProvider {
 	}
 	
 	public String generateWhereQuery() {
-		//TODO Don't forget the comparators in the joins
 		List<String> whereQueries = new ArrayList<>();
-		for(ComparatorProvider comp : comparators) {
+		for(ComparatorProvider comp : getComparators()) {
 			whereQueries.add(comp.getQuery());
 		}
 		
