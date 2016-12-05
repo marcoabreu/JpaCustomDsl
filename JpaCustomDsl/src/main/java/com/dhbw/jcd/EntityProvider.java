@@ -98,11 +98,18 @@ public class EntityProvider {
 	}
 	
 	public ComparatorProvider where(String attributeName) throws AttributeNotFoundException {
+		//Comfort wrapper
+		
+		return where(attributeName, Object.class);
+	}
+		
+	
+	public <T> ComparatorProvider<T> where(String attributeName, Class<T> type) throws AttributeNotFoundException {
 		//TODO Check if attribute is annotated 
 		Field attributeField = extractAttributeField(this.entityClass, attributeName);
 		Type attributeType = ClassUtils.primitiveToWrapper((Class<?>) attributeField.getGenericType());
 		
-		ComparatorProvider comparator = new ComparatorProvider(this, attributeName, attributeType);
+		ComparatorProvider<T> comparator = new ComparatorProvider<T>(this, attributeName, attributeType);
 		
 		comparators.add(comparator);
 		

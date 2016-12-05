@@ -2,11 +2,9 @@ package com.dhbw.jcd;
 
 import java.lang.reflect.Type;
 
-import org.apache.commons.lang3.ClassUtils;
-
 import com.dhbw.jcd.exceptions.TypeMismatchException;
 
-public class ComparatorProvider {
+public class ComparatorProvider<T> {
 	private final EntityProvider entityProvider;
 	private final String attributeName;
 	private final Type attributeType;
@@ -19,7 +17,7 @@ public class ComparatorProvider {
 		this.attributeType = attributeType;
 	}
 	
-	public EntityProvider eq(Object value) throws TypeMismatchException {
+	public EntityProvider eq(T value) throws TypeMismatchException {
 		ensureTypeSafety(attributeType, value);
 		
 		//l.name = 'Heinz'
@@ -30,7 +28,7 @@ public class ComparatorProvider {
 	}
 	
 
-	public EntityProvider gt(Object value) throws TypeMismatchException {
+	public EntityProvider gt(T value) throws TypeMismatchException {
 		ensureTypeSafety(attributeType, value);
 		
 		//l.name > 'Heinz'
@@ -40,7 +38,7 @@ public class ComparatorProvider {
 		
 	}
 	
-	public EntityProvider lt(Object value) throws TypeMismatchException {
+	public EntityProvider lt(T value) throws TypeMismatchException {
 		ensureTypeSafety(attributeType, value);
 		
 		//l.name < 'Heinz'

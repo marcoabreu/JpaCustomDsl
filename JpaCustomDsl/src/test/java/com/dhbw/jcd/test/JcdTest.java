@@ -46,7 +46,7 @@ public class JcdTest {
 	@Test
 	public void fromWhereTest() throws EntityNotMappedException, EntityNotNamedException, TypeMismatchException, AttributeNotFoundException {
 		String query = factory.startFrom(ParentEntity.class)
-				.where("intColumn").eq(5).generateQuery();
+				.where("intColumn", Integer.class).eq(5).generateQuery();
 		System.out.println(query);
 	}
 	
@@ -76,10 +76,10 @@ public class JcdTest {
 	@Test
 	public void nestedJoinWhereTest() throws EntityNotMappedException, EntityNotNamedException, JcdException {
 		String query = factory.startFrom(ParentEntity.class)
-				.where("intColumn").eq(5).where("stringColumn").eq("elephant")
+				.where("intColumn", Integer.class).eq(5).where("stringColumn", String.class).eq("elephant")
 				.joins(
 					factory.startJoin(ChildEntity.class, "childEntityRelation")
-						.where("shortColumn").eq((short)42).where("longColumn").gt((long)5)
+						.where("shortColumn", Short.class).eq((short) 42).where("longColumn", long.class).gt((long) 5)
 						.joins(
 								factory.startJoin(ChildChildEntity.class, "childChildEntityRelation")
 						)
