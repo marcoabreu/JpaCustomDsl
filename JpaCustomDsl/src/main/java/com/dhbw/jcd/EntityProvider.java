@@ -6,18 +6,25 @@ import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
+
+import org.jboss.logging.Message;
 
 import com.dhbw.jcd.exceptions.AttributeNotFoundException;
 import com.dhbw.jcd.exceptions.EntityNotMappedException;
 import com.dhbw.jcd.exceptions.EntityNotNamedException;
+import com.dhbw.jcd.exceptions.JcdException;
 
 public class EntityProvider {
 	private final Class entityClass;
@@ -43,8 +50,26 @@ public class EntityProvider {
 		return this.alias;
 	}
 	
-	public EntityProvider joins(JoinProvider... joinProviders) throws AttributeNotFoundException {
+	protected Set<JoinProvider> getJoinEntities() {
+		Set<JoinProvider> joins = new LinkedHashSet<>();
+		joins.addAll(joinEntities.values());
 		
+		//Add nested joins
+		joinEntities.values().stream().map(j -> j.getJoinEntities()).forEach(j -> joins.addAll(j));
+		
+		return joins;
+	}
+	
+	public EntityProvider joins(EntityProvider... entityProviders) throws JcdException {
+		//The type may be EntityProvider, but we expect all passed providers to be JoinProviders because of the hirarchy tree
+		
+		List<JoinProvider> joinProviders = Arrays.stream(entityProviders).filter(e -> (e instanceof JoinProvider)).map(e -> (JoinProvider)e).collect(Collectors.toList());
+		
+		//Check if there are any passed providers which are not a joinProvider
+		if(joinProviders.size() != entityProviders.length) {
+			 List<EntityProvider> unmappedEntityProviders = Arrays.stream(entityProviders).filter(e -> !(e instanceof JoinProvider)).collect(Collectors.toList());
+			 throw new JcdException(MessageFormat.format("{0} is not a join provider. Please make sure to use the factory method to start a join", unmappedEntityProviders.get(0).entityName));
+		}
 		
 		for(JoinProvider joinProvider : joinProviders) {
 			//TODO Check if relation-annotation exists
@@ -54,8 +79,8 @@ public class EntityProvider {
 			Field relationField = extractAttributeField(this.entityClass, joinProvider.getRelationName());
 			
 			//TODO check if relationField contains required annotation
-			
 			joinEntities.put(joinProvider.getRelationName(), joinProvider);
+			joinProvider.setParentEntity(this);
 		}
 		
 		return this;
@@ -88,8 +113,8 @@ public class EntityProvider {
 	public String generateJoinQuery() {
 		//TODO Don't forget nested joins
 		List<String> joinQueries = new ArrayList<>();
-		for(Entry<String, JoinProvider> join : joinEntities.entrySet()) {
-			joinQueries.add(MessageFormat.format("JOIN {0}.{1} {2}", this.getAlias(), join.getValue().getRelationName(), join.getValue().getAlias()));
+		for(JoinProvider join : getJoinEntities()) {
+			joinQueries.add(MessageFormat.format("JOIN {0}.{1} {2}", join.getParentEntity().getAlias(), join.getRelationName(), join.getAlias()));
 		}
 		
 		String combinedJoinQuery = String.join(" ", joinQueries);

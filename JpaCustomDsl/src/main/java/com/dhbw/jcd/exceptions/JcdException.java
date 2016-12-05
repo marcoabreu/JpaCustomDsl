@@ -1,6 +1,6 @@
 package com.dhbw.jcd.exceptions;
 
-public abstract class JcdException extends Exception {
+public class JcdException extends Exception {
 
 	public JcdException() {
 		// TODO Auto-generated constructor stub
