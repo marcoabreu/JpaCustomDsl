@@ -8,8 +8,11 @@ import org.junit.Test;
 
 import com.dhbw.jcd.JcdFactory;
 import com.dhbw.jcd.exceptions.AttributeNotFoundException;
+import com.dhbw.jcd.exceptions.ColumnNotMappedException;
+import com.dhbw.jcd.exceptions.ColumnNotNamedException;
 import com.dhbw.jcd.exceptions.EntityNotMappedException;
 import com.dhbw.jcd.exceptions.EntityNotNamedException;
+import com.dhbw.jcd.exceptions.InvalidComparisonException;
 import com.dhbw.jcd.exceptions.JcdException;
 import com.dhbw.jcd.exceptions.TypeMismatchException;
 import com.dhbw.jcd.test.entity.ChildChildEntity;
@@ -44,7 +47,7 @@ public class JcdTest {
 	}
 	
 	@Test
-	public void fromWhereTest() throws EntityNotMappedException, EntityNotNamedException, TypeMismatchException, AttributeNotFoundException {
+	public void fromWhereTest() throws EntityNotMappedException, EntityNotNamedException, TypeMismatchException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
 		String query = factory.startFrom(ParentEntity.class)
 				.where("intColumn", Integer.class).eq(5).generateQuery();
 		System.out.println(query);
@@ -85,6 +88,13 @@ public class JcdTest {
 						)
 				)
 				.generateQuery();
+		System.out.println(query);
+	}
+	
+	@Test
+	public void whereLikeTest() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("stringColumn", Integer.class).like("elep_nt").generateQuery();
 		System.out.println(query);
 	}
 }

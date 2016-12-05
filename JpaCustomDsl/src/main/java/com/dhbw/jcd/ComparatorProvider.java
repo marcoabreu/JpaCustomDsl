@@ -56,13 +56,9 @@ public class ComparatorProvider<T> {
 		
 	}
 	
-	public EntityProvider max() throws TypeMismatchException, InvalidComparisonException {
-		if(!isNumeric(attributeType)) {
-			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
-		}
-		
-		//max(l.age)
-		generatedQuery = String.format("max(%s.%s)", this.entityProvider.getAlias(), this.attributeName);
+	public EntityProvider like(String pattern) throws TypeMismatchException, InvalidComparisonException {
+		//l.name LIKE 'eleph_nt'
+		generatedQuery = String.format("%s.%s LIKE '%s'", this.entityProvider.getAlias(), this.attributeName, pattern);
 		
 		return this.entityProvider;
 		
