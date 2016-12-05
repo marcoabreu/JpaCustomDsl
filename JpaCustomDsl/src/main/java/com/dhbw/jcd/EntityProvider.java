@@ -41,15 +41,19 @@ public class EntityProvider {
 	private Map<String, JoinProvider> joinEntities = new LinkedHashMap<>();
 	
 	
-	public EntityProvider(Class clazz) throws EntityNotMappedException, EntityNotNamedException {
+	public EntityProvider(Class clazz, AliasGenerator aliasGenerator) throws EntityNotMappedException, EntityNotNamedException {
 		this.entityClass = clazz;
 
 		this.entityName = extractEntityName(clazz);		
-		this.alias = generateAlias(this.entityName);
+		this.alias = aliasGenerator.generateAlias(this);
 	}
 	
 	public Class getEntityClass() {
 		return this.entityClass;
+	}
+	
+	public String getEntityName() {
+		return this.entityName;
 	}
 
 	public String getAlias() {
@@ -239,16 +243,4 @@ public class EntityProvider {
 			throw new AttributeNotFoundException(clazz, attributeName);
 		}
 	}
-	
-
-	
-	/**
-	 * Generate unique alias for passed class
-	 * @param entityClass
-	 * @return
-	 */
-	private static String generateAlias(String entityName) {
-		return String.format("%s_%s", entityName, UUID.randomUUID().toString());
-	}
-	
 }
