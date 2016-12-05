@@ -32,8 +32,10 @@ public class JcdTest {
 	private static void fillDatabase() {
 		//TODO Create example entries
 		
-		//TODO Create and execute some queries in the tests and check if the returned entities are those, which we expected
+		
 	}
+	
+	//TODO Create and execute some queries in the tests and check if the returned entities are those, which we expected
 
 	@Test
 	public void fromTest() throws EntityNotMappedException, EntityNotNamedException {
