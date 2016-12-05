@@ -5,7 +5,6 @@ import com.dhbw.jcd.exceptions.EntityNotNamedException;
 
 public class JcdFactory {
 	private JcdFactory() {
-		//TODO
 	}
 	
 	public static JcdFactory createFactory() {

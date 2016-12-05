@@ -2,6 +2,7 @@ package com.dhbw.jcd;
 
 import java.lang.reflect.Type;
 
+import com.dhbw.jcd.exceptions.InvalidComparisonException;
 import com.dhbw.jcd.exceptions.TypeMismatchException;
 
 public class ComparatorProvider<T> {
@@ -27,27 +28,46 @@ public class ComparatorProvider<T> {
 		
 	}
 	
-
-	public EntityProvider gt(T value) throws TypeMismatchException {
+	public EntityProvider gt(T value) throws TypeMismatchException, InvalidComparisonException {
 		ensureTypeSafety(attributeType, value);
 		
-		//l.name > 'Heinz'
+		if(!isNumeric(attributeType)) {
+			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
+		}
+		
+		//l.age > 123
 		generatedQuery = String.format("%s.%s > %s", this.entityProvider.getAlias(), this.attributeName, convertValueToString(value));
 		
 		return this.entityProvider;
 		
 	}
 	
-	public EntityProvider lt(T value) throws TypeMismatchException {
+	public EntityProvider lt(T value) throws TypeMismatchException, InvalidComparisonException {
 		ensureTypeSafety(attributeType, value);
 		
-		//l.name < 'Heinz'
+		if(!isNumeric(attributeType)) {
+			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
+		}
+		
+		//l.age < 123
 		generatedQuery = String.format("%s.%s < %s", this.entityProvider.getAlias(), this.attributeName, convertValueToString(value));
 		
 		return this.entityProvider;
 		
 	}
 	
+	public EntityProvider max() throws TypeMismatchException, InvalidComparisonException {
+		if(!isNumeric(attributeType)) {
+			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
+		}
+		
+		//max(l.age)
+		generatedQuery = String.format("max(%s.%s)", this.entityProvider.getAlias(), this.attributeName);
+		
+		return this.entityProvider;
+		
+	}
+
 	public String getQuery() {
 		return this.generatedQuery;
 	}
@@ -63,6 +83,10 @@ public class ComparatorProvider<T> {
 			return value.toString();
 		}
 	} 
+	
+	private boolean isNumeric(Type type) {
+		return Number.class.isAssignableFrom((Class<?>)type);
+	}
 	
 	private void ensureTypeSafety(Type attributeType, Object passedParameter) throws TypeMismatchException {
 		if(!passedParameter.getClass().equals(attributeType)) {

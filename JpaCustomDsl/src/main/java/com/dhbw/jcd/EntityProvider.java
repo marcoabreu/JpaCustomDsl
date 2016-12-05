@@ -1,31 +1,36 @@
 package com.dhbw.jcd;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.jboss.logging.Message;
 
 import com.dhbw.jcd.exceptions.AttributeNotFoundException;
+import com.dhbw.jcd.exceptions.ColumnNotMappedException;
+import com.dhbw.jcd.exceptions.ColumnNotNamedException;
 import com.dhbw.jcd.exceptions.EntityNotMappedException;
 import com.dhbw.jcd.exceptions.EntityNotNamedException;
 import com.dhbw.jcd.exceptions.JcdException;
+import com.dhbw.jcd.exceptions.RelationNotMappedException;
 
 public class EntityProvider {
 	private final Class entityClass;
@@ -73,13 +78,23 @@ public class EntityProvider {
 		}
 		
 		for(JoinProvider joinProvider : joinProviders) {
-			//TODO Check if relation-annotation exists
-			
-			//TODO differentiate between ToOne and ToMany - is this needed?
-			
 			Field relationField = extractAttributeField(this.entityClass, joinProvider.getRelationName());
 			
-			//TODO check if relationField contains required annotation
+			//Check if attribute is mapped as annotation
+			OneToMany oneToManyAnnotation = relationField.getDeclaredAnnotation(OneToMany.class);
+			ManyToOne manyToOneAnnotation = relationField.getDeclaredAnnotation(ManyToOne.class);
+			ManyToMany manyToManyAnnotation = relationField.getDeclaredAnnotation(ManyToMany.class);
+			
+			if(oneToManyAnnotation != null) {
+				
+			} else if(manyToOneAnnotation != null) {
+				
+			} else if(manyToManyAnnotation != null) {
+				
+			} else {
+				throw new RelationNotMappedException(this.entityClass, joinProvider.getRelationName());
+			}
+			
 			joinEntities.put(joinProvider.getRelationName(), joinProvider);
 			joinProvider.setParentEntity(this);
 		}
@@ -97,16 +112,19 @@ public class EntityProvider {
 		return compares;
 	}
 	
-	public ComparatorProvider where(String attributeName) throws AttributeNotFoundException {
+	public ComparatorProvider where(String attributeName) throws AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
 		//Comfort wrapper
 		
 		return where(attributeName, Object.class);
 	}
 		
 	
-	public <T> ComparatorProvider<T> where(String attributeName, Class<T> type) throws AttributeNotFoundException {
-		//TODO Check if attribute is annotated 
+	public <T> ComparatorProvider<T> where(String attributeName, Class<T> type) throws AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
 		Field attributeField = extractAttributeField(this.entityClass, attributeName);
+		
+		//Check if attribute is annotated as Column and has a name
+		String columnName = extractColumnName(this.entityClass, attributeName);
+		
 		Type attributeType = ClassUtils.primitiveToWrapper((Class<?>) attributeField.getGenericType());
 		
 		ComparatorProvider<T> comparator = new ComparatorProvider<T>(this, attributeName, attributeType);
@@ -160,14 +178,26 @@ public class EntityProvider {
 		return sb.toString();
 	}
 	
-	private static String extractEntityName(Class clazz) throws EntityNotMappedException, EntityNotNamedException{
-		//TODO Check via reflection if clazz contains entity-annotation
-		//TODO Extract entity-name of that annotation
-		Optional<Annotation> entityAnnotationOpt = Arrays.stream(clazz.getDeclaredAnnotations()).filter(a -> a.annotationType().equals(javax.persistence.Entity.class)).findFirst();
+	/**
+	 * Find the specified annotation
+	 * @param reflectionObject Object on which to search annotation
+	 * @param searchedAnnotation Annotation to search
+	 * @return Annotation or null if not found
+	 */
+	@SuppressWarnings("unchecked")
+	private static <T extends Annotation> T findAnnotation(AccessibleObject reflectionObject, Class<T> searchedAnnotation) {
+		Optional<Annotation> entityAnnotationOpt = Arrays.stream(reflectionObject.getDeclaredAnnotations()).filter(a -> a.annotationType().equals(searchedAnnotation)).findFirst();
 		
 		if(entityAnnotationOpt.isPresent()) {
-			Entity entityAnnotation = (Entity)entityAnnotationOpt.get();
-			
+			return (T)entityAnnotationOpt.get();
+		} else {
+			return null;
+		}
+	}
+	
+	private static String extractEntityName(Class<?> clazz) throws EntityNotMappedException, EntityNotNamedException{
+		Entity entityAnnotation = clazz.getDeclaredAnnotation(Entity.class);
+		if(entityAnnotation != null) {
 			//TODO Name is only optional, determine default behavior. For now, we *require* a name
 			String entityName = entityAnnotation.name();
 			
@@ -181,6 +211,24 @@ public class EntityProvider {
 		}
 	}
 	
+	private static String extractColumnName(Class clazz, String attributeName) throws AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
+		Field attributeField = extractAttributeField(clazz,  attributeName);
+		Column columnAnnotation = attributeField.getDeclaredAnnotation(Column.class);
+		
+		if(columnAnnotation != null) {
+			//TODO Name is only optional, determine default behavior. For now, we *require* a name
+			String columnName = columnAnnotation.name();
+			
+			if(columnName.isEmpty()) {
+				throw new ColumnNotNamedException(clazz, attributeName);
+			}
+			
+			return columnName;
+		} else {
+			throw new ColumnNotMappedException(clazz, attributeName);
+		}
+	}
+	
 	private static Field extractAttributeField(Class clazz, String attributeName) throws AttributeNotFoundException {
 		try {
 			Field field = clazz.getDeclaredField(attributeName);
@@ -188,7 +236,6 @@ public class EntityProvider {
 			
 			return field;
 		} catch(NoSuchFieldException e) {
-			//TODO
 			throw new AttributeNotFoundException(clazz, attributeName);
 		}
 	}

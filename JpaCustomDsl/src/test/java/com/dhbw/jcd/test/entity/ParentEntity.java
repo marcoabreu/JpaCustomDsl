@@ -24,7 +24,6 @@ public class ParentEntity {
 	private List<ChildEntity> childEntityRelation = new ArrayList<>();
 
 	public ParentEntity() {
-		// TODO Auto-generated constructor stub
 	}
 
 }

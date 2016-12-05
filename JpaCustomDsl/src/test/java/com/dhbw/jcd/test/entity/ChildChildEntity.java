@@ -9,7 +9,6 @@ public class ChildChildEntity {
 	private long id;
 	
 	public ChildChildEntity() {
-		// TODO Auto-generated constructor stub
 	}
 
 }

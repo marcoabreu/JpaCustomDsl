@@ -23,7 +23,6 @@ public class ChildEntity {
 	private List<ChildChildEntity> childChildEntityRelation = new ArrayList<>();
 	
 	public ChildEntity() {
-		// TODO Auto-generated constructor stub
 	}
 
 }
