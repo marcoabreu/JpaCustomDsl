@@ -1,5 +1,8 @@
 package com.dhbw.jcd.test;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -14,11 +17,20 @@ import com.dhbw.jcd.test.entity.ChildEntity;
 import com.dhbw.jcd.test.entity.ParentEntity;
 
 public class JcdTest {
+	private static final String PERSISTENCE_UNIT_NAME = "h2-mem";
+	private static EntityManagerFactory entityFactory;
+	private final static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JcdTest.class);
 	private static JcdFactory factory;
 	
 	@BeforeClass
 	public static void init() {
 		factory = JcdFactory.createFactory();
+		entityFactory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+		fillDatabase();
+	}
+	
+	private static void fillDatabase() {
+		
 	}
 
 	@Test

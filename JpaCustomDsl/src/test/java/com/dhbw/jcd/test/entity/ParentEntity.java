@@ -5,10 +5,14 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 @Entity(name = "ParentEntity")
 public class ParentEntity {
+	
+	@Id
+	private long id;
 	
 	@Column(name = "intColumn")
 	private int intColumn;

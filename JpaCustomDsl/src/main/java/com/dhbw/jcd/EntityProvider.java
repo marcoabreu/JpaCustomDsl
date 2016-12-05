@@ -111,7 +111,6 @@ public class EntityProvider {
 	}
 	
 	public String generateJoinQuery() {
-		//TODO Don't forget nested joins
 		List<String> joinQueries = new ArrayList<>();
 		for(JoinProvider join : getJoinEntities()) {
 			joinQueries.add(MessageFormat.format("JOIN {0}.{1} {2}", join.getParentEntity().getAlias(), join.getRelationName(), join.getAlias()));
