@@ -138,7 +138,7 @@ public class EntityProvider {
 		return comparator;
 	}
 	
-	public String generateWhereQuery() {
+	private String generateWhereQuery() {
 		List<String> whereQueries = new ArrayList<>();
 		for(ComparatorProvider comp : getComparators()) {
 			whereQueries.add(comp.getQuery());
@@ -149,7 +149,7 @@ public class EntityProvider {
 		return combinedWhereQuery;
 	}
 	
-	public String generateJoinQuery() {
+	private String generateJoinQuery() {
 		List<String> joinQueries = new ArrayList<>();
 		for(JoinProvider join : getJoinEntities()) {
 			joinQueries.add(MessageFormat.format("JOIN {0}.{1} {2}", join.getParentEntity().getAlias(), join.getRelationName(), join.getAlias()));
@@ -169,14 +169,14 @@ public class EntityProvider {
 		
 		sb.append(fromClause);
 		
-		if(!whereClause.isEmpty()) {
-			sb.append(" WHERE ");
-			sb.append(whereClause);
-		}
-		
 		if(!joinClause.isEmpty()) {
 			sb.append(" ");
 			sb.append(joinClause);
+		}
+		
+		if(!whereClause.isEmpty()) {
+			sb.append(" WHERE ");
+			sb.append(whereClause);
 		}
 		
 		return sb.toString();

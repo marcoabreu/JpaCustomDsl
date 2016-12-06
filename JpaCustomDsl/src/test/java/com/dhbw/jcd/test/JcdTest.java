@@ -201,7 +201,6 @@ public class JcdTest {
 		Assert.assertTrue(resultList.containsAll(childChildEntityList) && childChildEntityList.containsAll(resultList));
 	}
 	
-	//Joinen deine Entitys immer auf die ID in Abhänigkeit von OneToMany und so oder sollte der join eig alle mit allen kombinieren ohne eine Bedingung
 	@Test
 	public void joinChildEntityFromParent () throws EntityNotMappedException, EntityNotNamedException, JcdException {
 		String query =factory.startFrom(ParentEntity.class)
