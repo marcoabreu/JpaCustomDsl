@@ -54,7 +54,7 @@ public class JcdTest {
 				ParentEntity projectOne = new ParentEntity("Project One", "Scantraxx Reloaded", 1);
 				ParentEntity psykoPunkz = new ParentEntity("Psyko Punkz", "Dirty Workz", 26);
 				ParentEntity adaro = new ParentEntity("Adaro", "Scantraxx", 28);
-				
+				ParentEntity testTrim = new ParentEntity("     Test Trim     ", "Test", 20);
 			
 				// Create Albums
 				ChildEntity projectOneAlbum = new ChildEntity("Project One", 13);
@@ -136,10 +136,12 @@ public class JcdTest {
 				entityManager.persist(rockNowEp);
 				entityManager.persist(mySoulToTakeEp);
 				entityManager.persist(adaro);
+				entityManager.persist(testTrim);
 				
 				parentEntityList.add(projectOne);
 				parentEntityList.add(psykoPunkz);
 				parentEntityList.add(adaro);
+				parentEntityList.add(testTrim);
 				
 				childEntityList.add(mySoulToTakeEp);
 				childEntityList.add(rockNowEp);
@@ -329,6 +331,71 @@ public class JcdTest {
 		
 	}
 	
+	@Test
+	public void testModifierLower() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("artist", String.class).addModifier("LOWER").eq("adaro").generateQuery();
+		ParentEntity entity = (ParentEntity) entityManager.createQuery(query).getSingleResult();
+		
+		ParentEntity original = null;
+		for (ParentEntity parentEntity : parentEntityList) {
+			if (parentEntity.getArtist().equals("Adaro")) {
+				original = parentEntity;
+			}
+		}
+		//Assert.assertTrue(list1.containsAll(list2.containsAll) && list2.containsAll(list1.containsAll));
+		Assert.assertEquals(original, entity);
+	}
+	
+	@Test
+	public void testModifierUpper() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("artist", String.class).addModifier("UPPER").eq("PROJECT ONE").generateQuery();
+		ParentEntity entity = (ParentEntity) entityManager.createQuery(query).getSingleResult();
+		
+		ParentEntity original = null;
+		for (ParentEntity parentEntity : parentEntityList) {
+			if (parentEntity.getArtist().equals("Project One")) {
+				original = parentEntity;
+			}
+		}
+		//Assert.assertTrue(list1.containsAll(list2.containsAll) && list2.containsAll(list1.containsAll));
+		Assert.assertEquals(original, entity);
+	}
+	
+	@Test
+	public void testModifierTrim() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("artist", String.class).addModifier("TRIM").eq("Test Trim").generateQuery();
+		ParentEntity entity = (ParentEntity) entityManager.createQuery(query).getSingleResult();
+		
+		ParentEntity original = null;
+		for (ParentEntity parentEntity : parentEntityList) {
+			if (parentEntity.getArtist().equals("     Test Trim     ")) {
+				original = parentEntity;
+			}
+		}
+		//Assert.assertTrue(list1.containsAll(list2.containsAll) && list2.containsAll(list1.containsAll));
+		Assert.assertEquals(original, entity);
+	}
+	
+	@Test
+	public void testTwoModifiers() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("artist", String.class).addModifier("TRIM").addModifier("LOWER").eq("test trim").generateQuery();
+		ParentEntity entity = (ParentEntity) entityManager.createQuery(query).getSingleResult();
+		
+		ParentEntity original = null;
+		for (ParentEntity parentEntity : parentEntityList) {
+			if (parentEntity.getArtist().equals("     Test Trim     ")) {
+				original = parentEntity;
+			}
+		}
+		//Assert.assertTrue(list1.containsAll(list2.containsAll) && list2.containsAll(list1.containsAll));
+		Assert.assertEquals(original, entity);
+	}
+	
+	
 	// Marcos example query generators
 
 	@Test
@@ -359,6 +426,8 @@ public class JcdTest {
 				.generateQuery();
 		System.out.println(query);
 	}
+	
+	
 
 	@Test
 	public void whereModifierTest() throws EntityNotMappedException, EntityNotNamedException, JcdException {
