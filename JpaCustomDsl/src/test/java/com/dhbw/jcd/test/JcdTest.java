@@ -329,8 +329,7 @@ public class JcdTest {
 		
 	}
 	
-	// TODO Create and execute some queries in the tests and check if the
-	// returned entities are those, which we expected
+	// Marcos example query generators
 
 	@Test
 	public void fromTest() throws EntityNotMappedException, EntityNotNamedException {
@@ -358,6 +357,13 @@ public class JcdTest {
 				.joins(factory.startJoin(ChildEntity.class, "childEntityRelation")
 						.joins(factory.startJoin(ChildChildEntity.class, "childChildEntityRelation")))
 				.generateQuery();
+		System.out.println(query);
+	}
+
+	@Test
+	public void whereModifierTest() throws EntityNotMappedException, EntityNotNamedException, JcdException {
+		String query = factory.startFrom(ParentEntity.class)
+				.where("intColumn", Integer.class).eq(5).where("stringColumn", String.class).addModifier("TRIM").addModifier("LOWER").eq("ente").generateQuery();
 		System.out.println(query);
 	}
 

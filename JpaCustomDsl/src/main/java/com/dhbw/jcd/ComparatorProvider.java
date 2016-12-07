@@ -1,6 +1,11 @@
 package com.dhbw.jcd;
 
 import java.lang.reflect.Type;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import com.dhbw.jcd.exceptions.InvalidComparisonException;
 import com.dhbw.jcd.exceptions.TypeMismatchException;
@@ -10,6 +15,7 @@ public class ComparatorProvider<T> {
 	private final String attributeName;
 	private final Type attributeType;
 	
+	private Set<String> modifiers = new LinkedHashSet<>();
 	private String generatedQuery;
 	
 	public ComparatorProvider(EntityProvider entityProvider, String attributeName, Type attributeType) {
@@ -22,7 +28,7 @@ public class ComparatorProvider<T> {
 		ensureTypeSafety(attributeType, value);
 		
 		//l.name = 'Heinz'
-		generatedQuery = String.format("%s.%s = %s", this.entityProvider.getAlias(), this.attributeName, convertValueToString(value));
+		generatedQuery = String.format("%s = %s", generateEntityVariableQuery(), convertValueToString(value));
 		
 		return this.entityProvider;
 		
@@ -36,7 +42,7 @@ public class ComparatorProvider<T> {
 		}
 		
 		//l.age > 123
-		generatedQuery = String.format("%s.%s > %s", this.entityProvider.getAlias(), this.attributeName, convertValueToString(value));
+		generatedQuery = String.format("%s > %s", generateEntityVariableQuery(), convertValueToString(value));
 		
 		return this.entityProvider;
 		
@@ -50,7 +56,7 @@ public class ComparatorProvider<T> {
 		}
 		
 		//l.age < 123
-		generatedQuery = String.format("%s.%s < %s", this.entityProvider.getAlias(), this.attributeName, convertValueToString(value));
+		generatedQuery = String.format("%s < %s", generateEntityVariableQuery(), convertValueToString(value));
 		
 		return this.entityProvider;
 		
@@ -58,14 +64,52 @@ public class ComparatorProvider<T> {
 	
 	public EntityProvider like(String pattern) throws TypeMismatchException, InvalidComparisonException {
 		//l.name LIKE 'eleph_nt'
-		generatedQuery = String.format("%s.%s LIKE '%s'", this.entityProvider.getAlias(), this.attributeName, pattern);
+		generatedQuery = String.format("%s LIKE '%s'", generateEntityVariableQuery(), pattern);
 		
 		return this.entityProvider;
 		
 	}
+	
+	
+	/**
+	 * Add a modifier to the compared variable in the style of 'TRIM(entity.var)'
+	 * @param functionName Modifier-function-name
+	 * @return Comparator with applied modifier
+	 */
+	public ComparatorProvider<T> addModifier(String functionName) {
+		this.modifiers.add(functionName);
+		
+		return this;
+	}
+	
+	
 
 	public String getQuery() {
 		return this.generatedQuery;
+	}
+	
+	/**
+	 * Generate the part of the query which represents the queried variable and all assigned modifiers
+	 * @return
+	 */
+	private String generateEntityVariableQuery() {
+		int nbClosingBrackets = this.modifiers.size();
+		
+		StringBuilder sb = new StringBuilder();
+		
+		//Add modifiers
+		for(String modifier : this.modifiers) {
+			sb.append(modifier + "(");
+		}
+		
+		sb.append(MessageFormat.format("{0}.{1}", this.entityProvider.getAlias(), this.attributeName));
+		
+		//Add closing brackets matching to modifiers
+		for(int i = 0; i < nbClosingBrackets; i++) {
+			sb.append(")");
+		}
+		
+		return sb.toString();
 	}
 	
 	private String convertValueToString(Object value) {
