@@ -3,6 +3,7 @@ package com.dhbw.jcd;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.Column;
@@ -21,6 +21,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.apache.commons.lang3.ClassUtils;
 
@@ -31,6 +32,7 @@ import com.dhbw.jcd.exceptions.EntityNotMappedException;
 import com.dhbw.jcd.exceptions.EntityNotNamedException;
 import com.dhbw.jcd.exceptions.JcdException;
 import com.dhbw.jcd.exceptions.RelationNotMappedException;
+import com.dhbw.jcd.exceptions.TypeMismatchException;
 
 public class EntityProvider {
 	private final Class entityClass;
@@ -44,7 +46,7 @@ public class EntityProvider {
 	public EntityProvider(Class clazz, AliasGenerator aliasGenerator) throws EntityNotMappedException, EntityNotNamedException {
 		this.entityClass = clazz;
 
-		this.entityName = extractEntityName(clazz);		
+		this.entityName = Utilities.extractEntityName(clazz);		
 		this.alias = aliasGenerator.generateAlias(this);
 	}
 	
@@ -82,21 +84,25 @@ public class EntityProvider {
 		}
 		
 		for(JoinProvider joinProvider : joinProviders) {
-			Field relationField = extractAttributeField(this.entityClass, joinProvider.getRelationName());
+			Field relationField = Utilities.extractAttributeField(this.entityClass, joinProvider.getRelationName());
 			
-			//Check if attribute is mapped as annotation
-			OneToMany oneToManyAnnotation = relationField.getDeclaredAnnotation(OneToMany.class);
-			ManyToOne manyToOneAnnotation = relationField.getDeclaredAnnotation(ManyToOne.class);
-			ManyToMany manyToManyAnnotation = relationField.getDeclaredAnnotation(ManyToMany.class);
-			
-			if(oneToManyAnnotation != null) {
-				
-			} else if(manyToOneAnnotation != null) {
-				
-			} else if(manyToManyAnnotation != null) {
-				
+			//Extract mapped class
+			Class<?> mappedClass;
+			if(relationField.getDeclaredAnnotation(OneToOne.class) != null ||
+					relationField.getDeclaredAnnotation(ManyToOne.class) != null) {
+				mappedClass = relationField.getType();
+			} else if(relationField.getDeclaredAnnotation(OneToMany.class) != null || 
+					relationField.getDeclaredAnnotation(ManyToMany.class) != null) {
+		        ParameterizedType listType = (ParameterizedType) relationField.getGenericType();
+		        mappedClass = (Class<?>) listType.getActualTypeArguments()[0];
 			} else {
+				//No annotation found, it does not seem to be mapped
 				throw new RelationNotMappedException(this.entityClass, joinProvider.getRelationName());
+			}
+			
+			//Check if relation attribute type matches the passed type of the passed entity-provider
+			if(Utilities.isTypeAssignable(this.entityClass, mappedClass)) {
+				throw new TypeMismatchException(this.entityClass, joinProvider.getRelationName(), mappedClass, joinProvider.getEntityClass());
 			}
 			
 			joinEntities.put(joinProvider.getRelationName(), joinProvider);
@@ -124,10 +130,10 @@ public class EntityProvider {
 		
 	
 	public <T> ComparatorProvider<T> where(String attributeName, Class<T> type) throws AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
-		Field attributeField = extractAttributeField(this.entityClass, attributeName);
+		Field attributeField = Utilities.extractAttributeField(this.entityClass, attributeName);
 		
 		//Check if attribute is annotated as Column and has a name
-		String columnName = extractColumnName(this.entityClass, attributeName);
+		String columnName = Utilities.extractColumnName(this.entityClass, attributeName);
 		
 		Type attributeType = ClassUtils.primitiveToWrapper((Class<?>) attributeField.getGenericType());
 		
@@ -182,65 +188,5 @@ public class EntityProvider {
 		return sb.toString();
 	}
 	
-	/**
-	 * Find the specified annotation
-	 * @param reflectionObject Object on which to search annotation
-	 * @param searchedAnnotation Annotation to search
-	 * @return Annotation or null if not found
-	 */
-	@SuppressWarnings("unchecked")
-	private static <T extends Annotation> T findAnnotation(AccessibleObject reflectionObject, Class<T> searchedAnnotation) {
-		Optional<Annotation> entityAnnotationOpt = Arrays.stream(reflectionObject.getDeclaredAnnotations()).filter(a -> a.annotationType().equals(searchedAnnotation)).findFirst();
-		
-		if(entityAnnotationOpt.isPresent()) {
-			return (T)entityAnnotationOpt.get();
-		} else {
-			return null;
-		}
-	}
 	
-	private static String extractEntityName(Class<?> clazz) throws EntityNotMappedException, EntityNotNamedException{
-		Entity entityAnnotation = clazz.getDeclaredAnnotation(Entity.class);
-		if(entityAnnotation != null) {
-			//TODO Name is only optional, determine default behavior. For now, we *require* a name
-			String entityName = entityAnnotation.name();
-			
-			if(entityName.isEmpty()) {
-				throw new EntityNotNamedException(clazz);
-			}
-				
-			return entityName;
-		} else {
-			throw new EntityNotMappedException(clazz);
-		}
-	}
-	
-	private static String extractColumnName(Class clazz, String attributeName) throws AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException {
-		Field attributeField = extractAttributeField(clazz,  attributeName);
-		Column columnAnnotation = attributeField.getDeclaredAnnotation(Column.class);
-		
-		if(columnAnnotation != null) {
-			//TODO Name is only optional, determine default behavior. For now, we *require* a name
-			String columnName = columnAnnotation.name();
-			
-			if(columnName.isEmpty()) {
-				throw new ColumnNotNamedException(clazz, attributeName);
-			}
-			
-			return columnName;
-		} else {
-			throw new ColumnNotMappedException(clazz, attributeName);
-		}
-	}
-	
-	private static Field extractAttributeField(Class clazz, String attributeName) throws AttributeNotFoundException {
-		try {
-			Field field = clazz.getDeclaredField(attributeName);
-			field.setAccessible(true);
-			
-			return field;
-		} catch(NoSuchFieldException e) {
-			throw new AttributeNotFoundException(clazz, attributeName);
-		}
-	}
 }

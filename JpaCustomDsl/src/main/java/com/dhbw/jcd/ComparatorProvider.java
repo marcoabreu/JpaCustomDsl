@@ -2,8 +2,6 @@ package com.dhbw.jcd;
 
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -25,38 +23,38 @@ public class ComparatorProvider<T> {
 	}
 	
 	public EntityProvider eq(T value) throws TypeMismatchException {
-		ensureTypeSafety(attributeType, value);
+		ensureTypeSafety(value);
 		
 		//l.name = 'Heinz'
-		generatedQuery = String.format("%s = %s", generateEntityVariableQuery(), convertValueToString(value));
+		generatedQuery = String.format("%s = %s", generateEntityVariableQuery(), Utilities.convertValueToString(value));
 		
 		return this.entityProvider;
 		
 	}
 	
 	public EntityProvider gt(T value) throws TypeMismatchException, InvalidComparisonException {
-		ensureTypeSafety(attributeType, value);
+		ensureTypeSafety(value);
 		
-		if(!isNumeric(attributeType)) {
+		if(!Utilities.isNumeric(attributeType)) {
 			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
 		}
 		
 		//l.age > 123
-		generatedQuery = String.format("%s > %s", generateEntityVariableQuery(), convertValueToString(value));
+		generatedQuery = String.format("%s > %s", generateEntityVariableQuery(), Utilities.convertValueToString(value));
 		
 		return this.entityProvider;
 		
 	}
 	
 	public EntityProvider lt(T value) throws TypeMismatchException, InvalidComparisonException {
-		ensureTypeSafety(attributeType, value);
+		ensureTypeSafety(value);
 		
-		if(!isNumeric(attributeType)) {
+		if(!Utilities.isNumeric(attributeType)) {
 			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " gt can only be applied to numeric types");
 		}
 		
 		//l.age < 123
-		generatedQuery = String.format("%s < %s", generateEntityVariableQuery(), convertValueToString(value));
+		generatedQuery = String.format("%s < %s", generateEntityVariableQuery(), Utilities.convertValueToString(value));
 		
 		return this.entityProvider;
 		
@@ -112,24 +110,8 @@ public class ComparatorProvider<T> {
 		return sb.toString();
 	}
 	
-	private String convertValueToString(Object value) {
-		if(value instanceof String) {
-			//Add quotes
-			return String.format("'%s'", value);
-		}
-		else
-		{
-			//Should be a number - could there be anything else?
-			return value.toString();
-		}
-	} 
-	
-	private boolean isNumeric(Type type) {
-		return Number.class.isAssignableFrom((Class<?>)type);
-	}
-	
-	private void ensureTypeSafety(Type attributeType, Object passedParameter) throws TypeMismatchException {
-		if(!passedParameter.getClass().equals(attributeType)) {
+	private void ensureTypeSafety(Object passedParameter) throws TypeMismatchException {
+		if(!Utilities.isTypeAssignable(this.attributeType, passedParameter.getClass())) {
 			throw new TypeMismatchException(entityProvider.getEntityClass(), this.attributeName, attributeType, passedParameter.getClass());
 		}
 	}
