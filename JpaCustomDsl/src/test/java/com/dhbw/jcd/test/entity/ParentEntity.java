@@ -33,6 +33,11 @@ public class ParentEntity {
 	@Column(name = "stringColumn")
 	private String stringColumn;
 	
+	private String unmappedColumn;
+	
+	@Column(name = "")
+	private String unnamedColumn;
+	
 	@OneToMany(targetEntity= ChildEntity.class)
 	private List<ChildEntity> childEntityRelation = new ArrayList<>();
 

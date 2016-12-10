@@ -25,6 +25,8 @@ import com.dhbw.jcd.exceptions.TypeMismatchException;
 import com.dhbw.jcd.test.entity.ChildChildEntity;
 import com.dhbw.jcd.test.entity.ChildEntity;
 import com.dhbw.jcd.test.entity.ParentEntity;
+import com.dhbw.jcd.test.entity.UnmappedEntity;
+import com.dhbw.jcd.test.entity.UnnamedEntity;
 
 public class JcdTest {
 	private static final String PERSISTENCE_UNIT_NAME = "h2-mem";
@@ -453,4 +455,74 @@ public class JcdTest {
 				.where("stringColumn", String.class).like("elep_nt").generateQuery();
 		System.out.println(query);
 	}
+	
+	//--------- FAILURE TESTS -----------
+	
+	@Test(expected = InvalidComparisonException.class)
+	public void testInvalidComparisonLike() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		
+		factory.startFrom(ParentEntity.class)
+				.where("amountOfAlbums", Integer.class).like("asd").generateQuery();	
+	}
+	
+	@Test(expected = InvalidComparisonException.class)
+	public void testInvalidComparisonGt() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+		.where("stringColumn", String.class).gt("2").generateQuery();
+	}
+	
+	@Test(expected = InvalidComparisonException.class)
+	public void testInvalidComparisonLt() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+		.where("stringColumn", String.class).lt("2").generateQuery();
+	}
+	
+	@Test(expected = TypeMismatchException.class)
+	public void testTypeMismatchExceptionEq() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+				.where("stringColumn", Integer.class).eq(2).generateQuery();
+	}
+	
+	@Test(expected = TypeMismatchException.class)
+	public void testTypeMismatchExceptionGt() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+				.where("stringColumn", Integer.class).gt(2).generateQuery();	
+	}
+	
+	@Test(expected = TypeMismatchException.class)
+	public void testTypeMismatchExceptionLt() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+				.where("stringColumn", Integer.class).lt(3).generateQuery();	
+	}
+	
+	@Test(expected = AttributeNotFoundException.class)
+	public void testWhereAttributeNotFound() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+		.where("someColumn", String.class).like("something").generateQuery();
+	}
+	
+	@Test(expected = ColumnNotMappedException.class)
+	public void testWhereColumnNotMapped() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+		.where("unmappedColumn", String.class).like("something").generateQuery();
+	}
+	
+	@Test(expected = ColumnNotNamedException.class)
+	public void testWhereColumnNotNamed() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(ParentEntity.class)
+		.where("unnamedColumn", String.class).like("something").generateQuery();
+	}
+	
+	@Test(expected = EntityNotMappedException.class)
+	public void testStartFromUnmappedEntity() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(UnmappedEntity.class)
+		.where("unnamedColumn", String.class).like("something").generateQuery();
+	}
+	
+	@Test(expected = EntityNotNamedException.class)
+	public void testStartFromUnnamedEntity() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
+		factory.startFrom(UnnamedEntity.class)
+		.where("unnamedColumn", String.class).like("something").generateQuery();
+	}
+	
 }
