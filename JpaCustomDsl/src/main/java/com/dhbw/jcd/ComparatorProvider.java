@@ -61,6 +61,10 @@ public class ComparatorProvider<T> {
 	}
 	
 	public EntityProvider like(String pattern) throws TypeMismatchException, InvalidComparisonException {
+		if(Utilities.isNumeric(attributeType)) {
+			throw new InvalidComparisonException(this.entityProvider, this.attributeName, " like can only be applied to non-numeric types");
+		}
+		
 		//l.name LIKE 'eleph_nt'
 		generatedQuery = String.format("%s LIKE '%s'", generateEntityVariableQuery(), pattern);
 		

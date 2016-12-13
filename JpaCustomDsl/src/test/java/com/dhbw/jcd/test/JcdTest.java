@@ -437,17 +437,6 @@ public class JcdTest {
 				.where("intColumn", Integer.class).eq(5).where("stringColumn", String.class).addModifier("TRIM").addModifier("LOWER").eq("ente").generateQuery();
 		System.out.println(query);
 	}
-
-	/*@Test
-	public void nestedJoinWhereTest() throws EntityNotMappedException, EntityNotNamedException, JcdException {
-		String query = factory.startFrom(ParentEntity.class).where("intColumn", Integer.class).eq(5)
-				.where("stringColumn", String.class).eq("elephant")
-				.joins(factory.startJoin(ChildEntity.class, "childEntityRelation").where("shortColumn", Short.class)
-						.eq((short) 42).where("longColumn", long.class).gt((long) 5)
-						.joins(factory.startJoin(ChildChildEntity.class, "childChildEntityRelation")))
-				.generateQuery();
-		System.out.println(query);
-	}*/
 	
 	@Test
 	public void whereLikeTest() throws TypeMismatchException, InvalidComparisonException, AttributeNotFoundException, ColumnNotMappedException, ColumnNotNamedException, EntityNotMappedException, EntityNotNamedException {
@@ -525,14 +514,14 @@ public class JcdTest {
 		.where("unnamedColumn", String.class).like("something").generateQuery();
 	}
 	
-	@Test(expected = JcdException.class) //-------------------->Not sure which exception should be thrown (or is JdcException the right one?)
+	@Test(expected = EntityNotNamedException.class) 
 	public void testJoinFromUnnamedEntity() throws JcdException {
 		factory.startFrom(UnnamedEntity.class)
 				.joins(factory.startJoin(ChildEntity.class, "childEntityRelation")
 					.where("albumName", String.class).like("something")).generateQuery();
 	}
 
-	@Test(expected = JcdException.class) //--------------------->Not sure which exception should be thrown (or is JdcException the right one?)
+	@Test(expected = EntityNotNamedException.class) 
 	public void testJoinToUnnamedEntity() throws JcdException {
 		factory.startFrom(ParentEntity.class)
 				.joins(factory.startJoin(UnnamedEntity.class, "ParentUnnamedEntityRelation")
