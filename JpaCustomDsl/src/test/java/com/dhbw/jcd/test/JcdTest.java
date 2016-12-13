@@ -525,4 +525,37 @@ public class JcdTest {
 		.where("unnamedColumn", String.class).like("something").generateQuery();
 	}
 	
+	@Test(expected = JcdException.class) //-------------------->Not sure which exception should be thrown (or is JdcException the right one?)
+	public void testJoinFromUnnamedEntity() throws JcdException {
+		factory.startFrom(UnnamedEntity.class)
+				.joins(factory.startJoin(ChildEntity.class, "childEntityRelation")
+					.where("albumName", String.class).like("something")).generateQuery();
+	}
+
+	@Test(expected = JcdException.class) //--------------------->Not sure which exception should be thrown (or is JdcException the right one?)
+	public void testJoinToUnnamedEntity() throws JcdException {
+		factory.startFrom(ParentEntity.class)
+				.joins(factory.startJoin(UnnamedEntity.class, "ParentUnnamedEntityRelation")
+					.where("name", String.class).like("something")).generateQuery();
+	}
+
+	@Test(expected = AttributeNotFoundException.class)
+	public void testJoinAttributeNotFound() throws JcdException {
+		factory.startFrom(ChildEntity.class)
+				.joins(factory.startJoin(ParentEntity.class, "ChildParentEntityRelation")
+						.where("someColumn", String.class).like("something")).generateQuery();
+	}
+	@Test(expected = ColumnNotMappedException.class)
+	public void testJoinColumnNotMapped() throws JcdException {
+		factory.startFrom(ChildEntity.class)
+				.joins(factory.startJoin(ParentEntity.class, "ChildParentEntityRelation")
+						.where("unmappedColumn", String.class).like("something")).generateQuery();
+	}
+	@Test(expected = ColumnNotNamedException.class)
+	public void testJoinColumnNotNamed() throws JcdException {
+		factory.startFrom(ChildEntity.class)
+				.joins(factory.startJoin(ParentEntity.class, "ChildUnnamedEntityRelation")
+						.where("unnamedColumn", String.class).like("something")).generateQuery();
+	}
+	
 }
